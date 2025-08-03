@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRU Digital Design & Branding Club</title>
+
+    <!-- Tailwind CSS for styling utilities -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts for a professional look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* Custom CSS for the theme and animations */
+        :root {
+            --background: #000000;
+            /* Deep black */
+            --foreground: #F1F0ED;
+            --soft-white: #A29E9A;
+            --accent: #E53E3E;
+            /* Red */
+            --accent-dark: #C53030;
+            --glossy-start: rgba(255, 255, 255, 0.1);
+            --glossy-end: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            opacity: 0;
+            /* Initially hidden for fade-in animation */
+            transition: opacity 0.5s ease-in-out;
+            /* Body fade-in transition */
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .glossy-input,
+        .glossy-box {
+            background: linear-gradient(135deg, var(--glossy-end), var(--glossy-start));
+            border: 1px solid var(--glossy-start);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .glossy-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .scroll-down {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        #particle-canvas {
+            position: fixed;
+            /* Changed to fixed to stay in viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Placed behind all content */
+            opacity: 0.2;
+        }
+
+        header {
+            transition: background 0.4s ease, backdrop-filter 0.4s ease;
+        }
+
+        header.scrolled {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .image-container {
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            width: 162px;
+            /* Increased size by 1.35x */
+            height: 162px;
+            /* Increased size by 1.35x */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .image-container:hover {
+            transform: scale(1.05);
+        }
+
+        @media (min-width: 768px) {
+            .image-container {
+                top: 4rem;
+                right: 4rem;
+                width: 243px;
+                /* Increased size by 1.35x */
+                height: 243px;
+                /* Increased size by 1.35x */
+            }
+        }
+
+        .corner-bracket {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-style: solid;
+            border-color: var(--accent);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .corner-bracket.top-left {
+            top: -6px;
+            left: -6px;
+            border-width: 2px 0 0 2px;
+            animation: draw-in 0.8s forwards 0.8s;
+        }
+
+        .corner-bracket.top-right {
+            top: -6px;
+            right: -6px;
+            border-width: 2px 2px 0 0;
+            animation: draw-in 0.8s forwards 1s;
+        }
+
+        .corner-bracket.bottom-left {
+            bottom: -6px;
+            left: -6px;
+            border-width: 0 0 2px 2px;
+            animation: draw-in 0.8s forwards 1.2s;
+        }
+
+        .corner-bracket.bottom-right {
+            bottom: -6px;
+            right: -6px;
+            border-width: 0 2px 2px 0;
+            animation: draw-in 0.8s forwards 1.4s;
+        }
+
+        .image-container:hover .corner-bracket {
+            width: 30px;
+            height: 30px;
+        }
+
+        .image-container:hover .corner-bracket.top-left {
+            top: -10px;
+            left: -10px;
+        }
+
+        .image-container:hover .corner-bracket.top-right {
+            top: -10px;
+            right: -10px;
+        }
+
+        .image-container:hover .corner-bracket.bottom-left {
+            bottom: -10px;
+            left: -10px;
+        }
+
+        .image-container:hover .corner-bracket.bottom-right {
+            bottom: -10px;
+            right: -10px;
+        }
+
+        @keyframes draw-in {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                width: 20px;
+                height: 20px;
+                opacity: 1;
+            }
+        }
+
+        .rive-graphic-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw-line 2s ease-out forwards;
+        }
+
+        @keyframes draw-line {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Loki Animation Style */
+        .loki-text-container {
+            font-family: 'Inter', sans-serif;
+            /* Final font */
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .loki-letter {
+            display: inline-block;
+            opacity: 0;
+            transition: color 0.3s ease, text-shadow 0.3s ease, font-family 0.3s ease;
+        }
+
+        /* Mobile Menu styles */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 75%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 99;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 4rem 2rem;
+            border-left: 1px solid var(--glossy-start);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        .gallery-item,
+        .event-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .gallery-item:hover,
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(229, 62, 62, 0.2);
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+    <!-- The canvas for the particle animation is now a direct child of body -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Header Navigation -->
+    <header class="fixed top-0 left-0 w-full p-6 z-50">
+        <nav id="main-nav" class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#home" class="text-xl font-bold tracking-wider flex items-center gap-2">
+                <img src="SRU-DD&B_CLUB_LOGO 5.png" alt="Club Logo" class="h-14"
+                    onerror="this.onerror=null;this.src='https://placehold.co/100x100/000000/E53E3E?text=LOGO';">
+                <span>SRU DD&B CLUB</span>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center gap-8 font-mono">
+                <a href="#about" class="hover:text-[var(--accent)] transition-colors duration-300">About</a>
+                <a href="#poster" class="hover:text-[var(--accent)] transition-colors duration-300">Poster</a>
+                <a href="#gallery" class="hover:text-[var(--accent)] transition-colors duration-300">Gallery</a>
+                <a href="#events" class="hover:text-[var(--accent)] transition-colors duration-300">Events</a>
+                <a href="#contact" class="hover:text-[var(--accent)] transition-colors duration-300">Contact</a>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button id="mobile-menu-btn" class="md:hidden text-2xl z-[101]">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </nav>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="mobile-menu">
+            <div class="flex flex-col gap-8 text-2xl font-mono text-right">
+                <a href="#about" class="menu-link hover:text-[var(--accent)] transition-colors duration-300">About</a>
+                <a href="#poster" class="menu-link hover:text-[var(--accent)] transition-colors duration-300">Poster</a>
+                <a href="#gallery"
+                    class="menu-link hover:text-[var(--accent)] transition-colors duration-300">Gallery</a>
+                <a href="#events" class="menu-link hover:text-[var(--accent)] transition-colors duration-300">Events</a>
+                <a href="#contact"
+                    class="menu-link hover:text-[var(--accent)] transition-colors duration-300">Contact</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="h-screen flex justify-center items-center text-center md:text-left relative px-6">
+            <div class="reveal-image image-container">
+                <div
+                    class="w-full h-full rounded-full overflow-hidden border-4 border-[var(--glossy-start)] flex items-center justify-center p-2">
+                    <img src="SRU-DD&B_CLUB_LOGO 5.png" alt="Club Logo" class="w-full h-full object-contain"
+                        onerror="this.onerror=null;this.src='https://placehold.co/243x243/000000/E53E3E?text=LOGO';">
+                </div>
+                <div class="corner-bracket top-left"></div>
+                <div class="corner-bracket top-right"></div>
+                <div class="corner-bracket bottom-left"></div>
+                <div class="corner-bracket bottom-right"></div>
+            </div>
+
+            <div class="z-10 w-full max-w-7xl">
+                <h1 id="loki-name"
+                    class="loki-text-container text-4xl sm:text-5xl md:text-7xl font-black uppercase whitespace-nowrap">
+                </h1>
+                <div class="overflow-hidden mt-4">
+                    <p class="reveal-text text-base sm:text-lg md:text-2xl text-[var(--soft-white)] font-mono">
+                        Digital Design & Branding Club
+                    </p>
+                </div>
+            </div>
+
+            <div class="scroll-down absolute bottom-10 z-10 left-1/2 -translate-x-1/2">
+                <svg class="w-8 h-8 text-[var(--soft-white)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- About Club Section -->
+        <section id="about" class="py-32 px-6 relative">
+            <div class="about-container max-w-4xl mx-auto p-8 md:p-12 rounded-2xl glossy-box">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <div class="md:col-span-2">
+                        <h2 class="section-title text-4xl md:text-5xl font-bold mb-8 font-mono">About Our Club</h2>
+                        <p class="about-text text-lg md:text-xl text-[var(--soft-white)] leading-relaxed text-justify">
+                            The SRU Digital Design & Branding Club is dedicated to fostering creativity, innovation, and
+                            digital proficiency among students. We provide a collaborative platform for exploring
+                            graphic design, UI/UX, branding, and visual storytelling. Join us to explore the exciting
+                            world of digital design!
+                        </p>
+                    </div>
+                    <div class="rive-graphic hidden md:flex justify-center items-center">
+                        <svg width="150" height="150" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <g fill="none" stroke="var(--accent)" stroke-width="1.5">
+                                <!-- Concentric Squares -->
+                                <path class="rive-graphic-path" d="M 10 10 L 90 10 L 90 90 L 10 90 Z"
+                                    style="animation-delay: 0.5s;" />
+                                <path class="rive-graphic-path" d="M 20 20 L 80 20 L 80 80 L 20 80 Z"
+                                    style="animation-delay: 0.7s;" />
+                                <path class="rive-graphic-path" d="M 30 30 L 70 30 L 70 70 L 30 70 Z"
+                                    style="animation-delay: 0.9s;" />
+                                <path class="rive-graphic-path" d="M 40 40 L 60 40 L 60 60 L 40 60 Z"
+                                    style="animation-delay: 1.1s;" />
+                                <!-- Cross Lines -->
+                                <path class="rive-graphic-path" d="M 10 10 L 90 90" style="animation-delay: 1.3s;" />
+                                <path class="rive-graphic-path" d="M 10 90 L 90 10" style="animation-delay: 1.5s;" />
+                                <!-- Inner Diamond -->
+                                <path class="rive-graphic-path" d="M 50 20 L 80 50 L 50 80 L 20 50 Z"
+                                    style="animation-delay: 1.7s;" />
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Club Poster Section -->
+        <section id="poster" class="py-24 px-6 relative">
+            <div class="max-w-5xl mx-auto text-center">
+                <h2 class="section-title text-4xl md:text-6xl font-bold mb-12 font-mono">Official Club Poster</h2>
+                <div class="p-2 md:p-4 glossy-box rounded-xl inline-block">
+                    <img src="club_officiall_poster.jpg" alt="Club Poster"
+                        class="w-full h-auto object-contain rounded-lg" id="poster-image"
+                        onerror="this.onerror=null;this.src='https://placehold.co/800x1100/000000/ffffff?text=Official+Club+Poster';">
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="py-24 px-6 bg-black/20 relative">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="section-title text-4xl md:text-6xl font-bold mb-16 text-center font-mono">Gallery</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                    <div class="gallery-item glossy-box rounded-xl p-4">
+                        <img src="inaugaration.jpg" alt="Club Orientation" class="rounded-lg w-full h-auto"
+                            onerror="this.onerror=null;this.src='https://placehold.co/1200x800/000000/ffffff?text=Club+Orientation';">
+                        <h3 class="text-2xl font-bold mt-4 text-center">Club Orientation</h3>
+                        <p class="text-center text-[var(--soft-white)]">Welcoming new members to the community.</p>
+                    </div>
+                    <div class="gallery-item glossy-box rounded-xl p-4">
+                        <img src="team1.JPG" alt="Club Members" class="rounded-lg w-full h-auto"
+                            onerror="this.onerror=null;this.src='https://placehold.co/1200x800/000000/ffffff?text=Our+Members';">
+                        <h3 class="text-2xl font-bold mt-4 text-center">Our Members</h3>
+                        <p class="text-center text-[var(--soft-white)]">The creative minds behind the club.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" class="py-24 px-6 relative">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="section-title text-4xl md:text-6xl font-bold mb-16 text-center font-mono">Events</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                    <!-- Event 1 -->
+                    <div class="event-card glossy-box rounded-xl overflow-hidden">
+                        <img src="event2.jpg" class="w-full h-56 object-cover" alt="Design Hackathon"
+                            onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/ffffff?text=Design+Hackathon';">
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold text-[var(--accent)]">Design Hackathon</h3>
+                            <p class="text-sm text-gray-400 mt-1 mb-3">26th March 2025 | SRUX IDEATION ZONE</p>
+                            <p class="text-[var(--soft-white)]">A full-day event covering Figma fundamentals, UI/UX
+                                design, and a hackathon.</p>
+                        </div>
+                    </div>
+                    <!-- Event 2 -->
+                    <div class="event-card glossy-box rounded-xl overflow-hidden">
+                        <img src="event4.jpg" class="w-full h-56 object-cover" alt="Figma Webinar"
+                            onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/ffffff?text=Figma+Webinar';">
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold">Webinar on Figma Basics</h3>
+                            <p class="text-sm text-gray-400 mt-1 mb-3">9th November 2024 | Online</p>
+                            <p class="text-[var(--soft-white)]">A 2-hour interactive webinar introducing students to
+                                Figma.</p>
+                        </div>
+                    </div>
+                    <!-- Event 3 -->
+                    <div class="event-card glossy-box rounded-xl overflow-hidden">
+                        <img src="people.JPG" class="w-full h-56 object-cover" alt="Club Inauguration"
+                            onerror="this.onerror=null;this.src='https://placehold.co/800x600/1a1a1a/ffffff?text=Club+Launch';">
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold">Club Inauguration</h3>
+                            <p class="text-sm text-gray-400 mt-1 mb-3">15th October 2024 | University Auditorium</p>
+                            <p class="text-[var(--soft-white)]">The official launch of the SRU Digital Design & Branding
+                                Club.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 px-6 relative bg-black/20">
+            <div class="max-w-2xl mx-auto text-center">
+                <h2 class="section-title text-4xl md:text-6xl font-bold mb-8 font-mono">Get In Touch</h2>
+
+                <!-- WhatsApp Join Information -->
+                <div class="whatsapp-container mb-12">
+                    <p class="text-lg text-[var(--soft-white)] mb-6">
+                        Join our community on WhatsApp for the latest updates!
+                    </p>
+                    <a href="https://chat.whatsapp.com/IEbvUScOORz79ZaRQYzlOe?mode=ac_t" target="_blank"
+                        rel="noopener noreferrer"
+                        class="whatsapp-button inline-flex items-center p-4 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-bold rounded-md transition-all duration-300 text-lg transform hover:scale-105 shadow-lg hover:shadow-xl">
+                        <i class="fa-brands fa-whatsapp mr-3"></i> Join on WhatsApp
+                    </a>
+                </div>
+
+                <p class="text-lg text-[var(--soft-white)] font-mono mb-8">... or send us a message below</p>
+
+                <form action="https://formspree.io/f/xzzvaozo" method="POST" class="flex flex-col gap-6">
+                    <input type="text" name="name" placeholder="Your Name" required
+                        class="p-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all duration-300 glossy-input text-white" />
+                    <input type="email" name="email" placeholder="Your Email" required
+                        class="p-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all duration-300 glossy-input text-white" />
+                    <textarea name="message" rows="5" placeholder="Your Message" required
+                        class="p-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all duration-300 glossy-input text-white"></textarea>
+                    <button type="submit"
+                        class="p-4 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-bold rounded-md transition-all duration-300 text-lg transform hover:scale-105">
+                        Send Message
+                    </button>
+                </form>
+                <p class="text-lg text-[var(--soft-white)] font-mono mt-12 mb-4">dmb.club@sru.edu.in</p>
+                <div class="flex justify-center gap-6 md:gap-8 text-lg">
+                    <a href="mailto:dmb.club@sru.edu.in"
+                        class="text-[var(--soft-white)] hover:text-[var(--accent)] transition-colors font-mono">Mail</a>
+                    <a href="https://www.instagram.com/sru_design.club/" target="_blank" rel="noopener noreferrer"
+                        class="text-[var(--soft-white)] hover:text-[var(--accent)] transition-colors font-mono">Instagram</a>
+                    <a href="https://www.linkedin.com/in/designclubsru/" target="_blank" rel="noopener noreferrer"
+                        class="text-[var(--soft-white)] hover:text-[var(--accent)] transition-colors font-mono">LinkedIn</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <!-- Lenis for smooth scrolling -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- HEADER SCROLL EFFECT ---
+            const header = document.querySelector('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+
+            // --- FADE IN BODY ---
+            document.body.classList.add('loaded');
+
+            // --- SMOOTH SCROLLING SETUP ---
+            const lenis = new Lenis({
+                lerp: 0.08,
+                smoothWheel: true,
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetEl = document.querySelector(targetId);
+                    if (targetEl) {
+                        lenis.scrollTo(targetEl, { duration: 1.5 });
+                    }
+                    // Close mobile menu on link click
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+                    if (mobileMenu.classList.contains('open')) {
+                        mobileMenu.classList.remove('open');
+                        mobileMenuBtn.querySelector('i').className = 'fa-solid fa-bars';
+                    }
+                });
+            });
+
+            // --- ANIMATIONS SETUP ---
+            gsap.registerPlugin(ScrollTrigger);
+
+            // --- LOKI NAME ANIMATION (Club Name) ---
+            const nameContainer = document.getElementById('loki-name');
+            const finalName = "SRU DD&B CLUB";
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*#@!&%";
+            const glitchColors = ['#E53E3E', '#FF6347', '#F1F0ED'];
+
+            let html = '';
+            for (let i = 0; i < finalName.length; i++) {
+                html += `<span class="loki-letter" data-final-char="${finalName[i] === ' ' ? '&nbsp;' : finalName[i]}">${finalName[i]}</span>`;
+            }
+            nameContainer.innerHTML = html;
+
+            const letters = nameContainer.querySelectorAll('.loki-letter');
+            gsap.set(letters, { opacity: 0 }); // Start with letters invisible
+
+            letters.forEach((letter, index) => {
+                const finalChar = letter.dataset.finalChar;
+                if (finalChar === '&nbsp;') {
+                    gsap.to(letter, { opacity: 1, delay: 0.5 + index * 0.07 });
+                    return;
+                }
+
+                let interval;
+                setTimeout(() => {
+                    gsap.to(letter, { opacity: 1, duration: 0.2 });
+                    interval = setInterval(() => {
+                        letter.textContent = chars[Math.floor(Math.random() * chars.length)];
+                        const randomColor = glitchColors[Math.floor(Math.random() * glitchColors.length)];
+                        letter.style.color = randomColor;
+                        letter.style.textShadow = `0 0 8px ${randomColor}`;
+                    }, 50);
+
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        gsap.to(letter, {
+                            onComplete: () => {
+                                letter.innerHTML = finalChar;
+                                letter.style.color = 'var(--foreground)';
+                                letter.style.textShadow = 'none';
+                                letter.style.fontFamily = "'Inter', sans-serif";
+                                letter.style.fontWeight = "900";
+                                letter.style.letterSpacing = 'normal';
+                            }
+                        });
+                    }, 600 + Math.random() * 300);
+
+                }, 500 + index * 70);
+            });
+
+            // --- HERO SECTION REVEAL ---
+            gsap.from(".reveal-text", { y: '110%', opacity: 0, duration: 1.2, ease: "expo.out", delay: 2.2 });
+            gsap.from(".reveal-image", { scale: 0.5, opacity: 0, duration: 1.5, ease: "expo.out", delay: 0.4 });
+
+
+            // --- GENERAL SCROLL-TRIGGERED ANIMATIONS ---
+            const animateOnScroll = (element, props) => {
+                gsap.from(element, { ...props, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: element, start: 'top 85%', toggleActions: 'play none none none' } });
+            };
+
+            gsap.utils.toArray('.section-title').forEach(title => animateOnScroll(title, { y: 60 }));
+            animateOnScroll('.about-text', { y: 50, delay: 0.2 });
+            gsap.from(".about-container", { scale: 0.95, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: "#about", start: 'top 80%' } });
+
+            // --- NEW SECTIONS ANIMATION ---
+            animateOnScroll('#poster-image', { y: 50, scale: 0.9 });
+            gsap.from(".gallery-item", { y: 50, opacity: 0, stagger: 0.2, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: "#gallery", start: 'top 80%' } });
+            gsap.from(".event-card", { y: 50, opacity: 0, stagger: 0.15, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: "#events", start: 'top 80%' } });
+
+            // --- CONTACT SECTION WHATSAPP ANIMATION ---
+            animateOnScroll('.whatsapp-container', { y: 50, scale: 0.95 });
+
+
+            // --- MOBILE MENU FUNCTIONALITY ---
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = mobileMenu.classList.toggle('open');
+                mobileMenuBtn.querySelector('i').className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+            });
+
+            // --- PARTICLE BACKGROUND ANIMATION ---
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let animationFrameId;
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                mouse.radius = (canvas.height / 90) * (canvas.width / 90);
+                init();
+            }
+
+            let particlesArray;
+            const mouse = { x: null, y: null, radius: (window.innerHeight / 90) * (window.innerWidth / 90) };
+
+            window.addEventListener('mousemove', (event) => {
+                mouse.x = event.x;
+                mouse.y = event.y;
+            });
+
+            class Particle {
+                constructor(x, y, directionX, directionY, size) {
+                    this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY;
+                    this.size = size;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                    ctx.fillStyle = 'rgba(241, 240, 237, 0.7)';
+                    ctx.fill();
+                }
+                update() {
+                    if (this.x > canvas.width + this.size || this.x < -this.size) this.directionX = -this.directionX;
+                    if (this.y > canvas.height + this.size || this.y < -this.size) this.directionY = -this.directionY;
+
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius + this.size) {
+                        if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
+                        if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
+                        if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
+                        if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
+                    }
+                    this.x += this.directionX;
+                    this.y += this.directionY;
+                    this.draw();
+                }
+            }
+
+            function init() {
+                particlesArray = [];
+                let numberOfParticles = (canvas.height * canvas.width) / 11000;
+                for (let i = 0; i < numberOfParticles; i++) {
+                    let size = (Math.random() * 2.5) + 1;
+                    let x = (Math.random() * (innerWidth - size * 2) + size);
+                    let y = (Math.random() * (innerHeight - size * 2) + size);
+                    let directionX = (Math.random() * .3) - 0.15;
+                    let directionY = (Math.random() * .3) - 0.15;
+                    particlesArray.push(new Particle(x, y, directionX, directionY, size));
+                }
+            }
+
+            function connect() {
+                let opacityValue = 1;
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a; b < particlesArray.length; b++) {
+                        let distance = ((particlesArray[a].x - particlesArray[b].x) ** 2) + ((particlesArray[a].y - particlesArray[b].y) ** 2);
+                        if (distance < (canvas.width / 9) * (canvas.height / 9)) {
+                            opacityValue = 1 - (distance / 22000);
+                            ctx.strokeStyle = `rgba(162, 158, 154, ${opacityValue})`;
+
+                            let dx = mouse.x - particlesArray[a].x;
+                            let dy = mouse.y - particlesArray[a].y;
+                            let mouseDistance = Math.sqrt(dx * dx + dy * dy);
+                            if (mouseDistance < mouse.radius) {
+                                ctx.strokeStyle = `rgba(229, 62, 62, ${opacityValue})`;
+                            }
+
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                animationFrameId = requestAnimationFrame(animate);
+                ctx.clearRect(0, 0, innerWidth, innerHeight);
+                for (let i = 0; i < particlesArray.length; i++) {
+                    particlesArray[i].update();
+                }
+                connect();
+            }
+
+            window.addEventListener('resize', () => {
+                cancelAnimationFrame(animationFrameId);
+                resizeCanvas();
+                animate();
+            });
+
+            window.addEventListener('mouseout', () => {
+                mouse.x = undefined;
+                mouse.y = undefined;
+            });
+
+            resizeCanvas();
+            animate();
+        });
+    </script>
+</body>
+
+</html>
